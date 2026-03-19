@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "JARVIS",
+    "slug": "jarvis-deepseek",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0a0a0f",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.jarvis.deepseek"
+    },
+    "android": {
+      "package": "com.jarvis.deepseek",
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0f"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d213a9a9-ee7a-4739-b18e-5a223a62a4e9"
+      }
+    }
+  }
+}
