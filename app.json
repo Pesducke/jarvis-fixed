@@ -4,22 +4,33 @@
     "slug": "jarvis-deepseek",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0a0a0f",
-    "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "com.jarvis.deepseek"
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0F0F"
     },
     "android": {
-      "package": "com.jarvis.deepseek",
       "adaptiveIcon": {
-        "backgroundColor": "#0a0a0f"
-      }
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0F0F"
+      },
+      "package": "com.yourname.jarvis"
     },
-    "extra": {
-      "eas": {
-        "projectId": "d213a9a9-ee7a-4739-b18e-5a223a62a4e9"
-      }
-    }
+    "ios": {
+      "icon": "./assets/icon.png",
+      "bundleIdentifier": "com.yourname.jarvis"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0A0F0F",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ]
+    ]
   }
 }
