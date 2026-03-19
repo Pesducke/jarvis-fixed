@@ -11,7 +11,9 @@
       "android": {
         "buildType": "apk"
       },
-      "installCommand": "npm install"
+      "config": {
+        "installCommand": "npm install"
+      }
     },
     "production": {}
   },
