@@ -12,25 +12,16 @@
       "backgroundColor": "#0A0F0F"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0A0F0F"
-      },
       "package": "com.yourname.jarvis"
     },
     "ios": {
       "icon": "./assets/icon.png",
       "bundleIdentifier": "com.yourname.jarvis"
     },
-    "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#0A0F0F",
-          "image": "./assets/splash-icon.png",
-          "imageWidth": 200
-        }
-      ]
-    ]
+    "extra": {
+      "eas": {
+        "projectId": "d213a9a9-ee7a-4739-b18e-5a223a62a4e9"
+      }
+    }
   }
 }

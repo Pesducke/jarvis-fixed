@@ -17,7 +17,7 @@ export default function Snapshot({ topics }) {
   const [showHistory, setShowHistory] = useState(false);
   
   const week = Math.ceil(new Date().getDate() / 7);
-  const month = new Date().toLocaleDateString('uk-UA', { 
+  const month = new Date().toLocaleDateString('uk-RU', { 
     month: 'long', 
     year: 'numeric' 
   });
@@ -30,23 +30,23 @@ export default function Snapshot({ topics }) {
     setLoading(true);
     try {
       if (safeTopics.length === 0) {
-        throw new Error('Теми не визначені');
+        throw new Error('Темы не определены');
       }
       
       const text = await askDeepSeek(
-        [{ role: 'user', content: `Інтереси: ${safeTopics.join(', ')}. 
-Поверни ТІЛЬКИ JSON без markdown:
+        [{ role: 'user', content: `Интересы: ${safeTopics.join(', ')}. 
+Верни ТОЛЬКО JSON без markdown:
 {
   "shifts": [
     {
-      "before": "спрощений погляд",
-      "after": "глибше розуміння"
+      "before": "упрощённый взгляд",
+      "after": "более глубокое понимание"
     }
   ],
-  "blind_spot": "провокаційна сліпа пляма одним реченням",
-  "question_for_week": "глибоке питання на тиждень"
+  "blind_spot": "Провокационная слепая зона одним предложением",
+  "question_for_week": "глубокий вопрос на неделю"
 }` }],
-        'Ти JARVIS — когнітивний дзеркальний асистент. Відповідай ТІЛЬКИ валідним JSON без markdown. Мова: українська.'
+        'Ты JARVIS — когнитивный зеркальный ассистент. Отвечай ТОЛЬКО валидным JSON без markdown. Язык: русский.'
       );
       
       const d = safeJSON(text);
@@ -78,20 +78,20 @@ export default function Snapshot({ topics }) {
         showsVerticalScrollIndicator={false}
       >
         <View style={s.head}>
-          <Text style={s.wk}>Тиждень {week} · {month}</Text>
-          <Text style={s.title}>Зріз мислення</Text>
-          <Text style={s.sub}>Що змінилося в твоїй голові</Text>
+          <Text style={s.wk}>Неделя {week} · {month}</Text>
+          <Text style={s.title}>Срез мышления</Text>
+          <Text style={s.sub}>Что изменилось в твоей голове</Text>
         </View>
 
         {!data && !loading && (
           <View style={s.empty}>
             <Text style={s.emptyIco}>🪞</Text>
-            <Text style={s.emptyTitle}>Готовий до чесного розбору?</Text>
+            <Text style={s.emptyTitle}>Готов к честному разбору?</Text>
             <Text style={s.emptyTxt}>
-              JARVIS проаналізує сліпі плями{'\n'}і зсуви в мисленні за тиждень
+              JARVIS проанализирует слепые зоны.{'\n'}і сдвиги в мышлении за неделю
             </Text>
             <Btn 
-              label="Показати зріз" 
+              label="Показать срез" 
               onPress={generate} 
               style={{ marginTop: 20 }} 
             />
@@ -108,11 +108,11 @@ export default function Snapshot({ topics }) {
 
         {data && !loading && (
           <>
-            <SectionLabel text="Зсуви мислення" />
+            <SectionLabel text="Сдвиги мышления" />
             {shifts.map((sh, i) => (
               <View key={i} style={s.shift}>
                 <View style={s.shRow}>
-                  <Text style={s.shBefore}>БУЛО</Text>
+                  <Text style={s.shBefore}>БЫЛО</Text>
                   <Text style={s.shTxt}>{sh.before || ''}</Text>
                 </View>
                 <View style={s.shDiv} />
@@ -125,20 +125,20 @@ export default function Snapshot({ topics }) {
               </View>
             ))}
 
-            <SectionLabel text="Сліпа пляма" />
+            <SectionLabel text="Слепая зона" />
             <View style={s.blind}>
               <Text style={s.blindLabel}>⚠ JARVIS помітив</Text>
               <Text style={s.blindTxt}>{data.blind_spot || ''}</Text>
             </View>
 
-            <SectionLabel text="Питання на наступний тиждень" />
+            <SectionLabel text="Вопрос на следующую неделю" />
             <View style={s.qCard}>
-              <Text style={s.qLabel}>ТРИМАЙ В РОЗУМІ</Text>
+              <Text style={s.qLabel}>ИМЕЙ В ВИДУ</Text>
               <Text style={s.qTxt}>{data.question_for_week || ''}</Text>
             </View>
 
             <Btn 
-              label="↻ Оновити зріз" 
+              label="↻ Обновить сейчас" 
               onPress={generate} 
               loading={loading} 
               ghost 
@@ -151,8 +151,8 @@ export default function Snapshot({ topics }) {
           <>
             <Btn 
               label={showHistory 
-                ? '↑ Сховати історію' 
-                : `↓ Історія (${history.length - 1})`
+                ? '↑ Спрятать историю' 
+                : `↓ История (${history.length - 1})`
               } 
               onPress={() => setShowHistory(p => !p)} 
               ghost 
@@ -161,7 +161,7 @@ export default function Snapshot({ topics }) {
             {showHistory && history.slice(1).map((h, i) => (
               <View key={i} style={s.histCard}>
                 <Text style={s.histMeta}>
-                  Тиждень {h.weekNumber} · {h.month}
+                  Неделя {h.weekNumber} · {h.month}
                 </Text>
                 <Text style={s.histTxt}>"{h.blind_spot || ''}"</Text>
               </View>
@@ -180,7 +180,7 @@ const s = StyleSheet.create({
   head: { alignItems: 'center', paddingVertical: 20 },
   wk: { 
     fontFamily: Font.mono, 
-    fontSize: 11, 
+    fontSize: 15, 
     color: Colors.muted, 
     textTransform: 'uppercase', 
     letterSpacing: 2, 
@@ -188,13 +188,13 @@ const s = StyleSheet.create({
   },
   title: { 
     fontFamily: Font.serif, 
-    fontSize: 28, 
+    fontSize: 32, 
     color: Colors.text, 
     marginBottom: 4 
   },
   sub: { 
     fontFamily: Font.sans, 
-    fontSize: 13, 
+    fontSize: 17, 
     color: Colors.muted 
   },
   empty: { 
@@ -202,18 +202,18 @@ const s = StyleSheet.create({
     paddingVertical: 40 
   },
   emptyIco: { 
-    fontSize: 40, 
+    fontSize: 44, 
     marginBottom: 16 
   },
   emptyTitle: { 
     fontFamily: Font.serif, 
-    fontSize: 18, 
+    fontSize: 22, 
     color: Colors.text, 
     marginBottom: 8 
   },
   emptyTxt: { 
     fontFamily: Font.sans, 
-    fontSize: 13, 
+    fontSize: 17, 
     color: Colors.muted, 
     textAlign: 'center', 
     lineHeight: 20 
@@ -233,7 +233,7 @@ const s = StyleSheet.create({
   },
   shBefore: { 
     fontFamily: Font.mono, 
-    fontSize: 9, 
+    fontSize: 13, 
     color: Colors.red, 
     textTransform: 'uppercase', 
     flexShrink: 0, 
@@ -241,7 +241,7 @@ const s = StyleSheet.create({
   },
   shAfter: { 
     fontFamily: Font.mono, 
-    fontSize: 9, 
+    fontSize: 13, 
     color: Colors.green, 
     textTransform: 'uppercase', 
     flexShrink: 0, 
@@ -250,7 +250,7 @@ const s = StyleSheet.create({
   shTxt: { 
     flex: 1, 
     fontFamily: Font.sans, 
-    fontSize: 13, 
+    fontSize: 17, 
     color: Colors.textSub, 
     lineHeight: 20 
   },
@@ -269,7 +269,7 @@ const s = StyleSheet.create({
   },
   blindLabel: { 
     fontFamily: Font.mono, 
-    fontSize: 10, 
+    fontSize: 14, 
     color: Colors.red, 
     textTransform: 'uppercase', 
     letterSpacing: 2, 
@@ -277,7 +277,7 @@ const s = StyleSheet.create({
   },
   blindTxt: { 
     fontFamily: Font.serifI, 
-    fontSize: 15, 
+    fontSize: 19, 
     color: Colors.text, 
     lineHeight: 24 
   },
@@ -290,7 +290,7 @@ const s = StyleSheet.create({
   },
   qLabel: { 
     fontFamily: Font.mono, 
-    fontSize: 10, 
+    fontSize: 14, 
     color: Colors.accent, 
     textTransform: 'uppercase', 
     letterSpacing: 2, 
@@ -298,7 +298,7 @@ const s = StyleSheet.create({
   },
   qTxt: { 
     fontFamily: Font.serif, 
-    fontSize: 17, 
+    fontSize: 21, 
     color: Colors.text, 
     lineHeight: 26 
   },
@@ -312,13 +312,13 @@ const s = StyleSheet.create({
   },
   histMeta: { 
     fontFamily: Font.mono, 
-    fontSize: 10, 
+    fontSize: 14, 
     color: Colors.muted, 
     marginBottom: 6 
   },
   histTxt: { 
     fontFamily: Font.serifI, 
-    fontSize: 13, 
+    fontSize: 17, 
     color: Colors.textSub, 
     lineHeight: 20 
   },

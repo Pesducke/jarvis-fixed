@@ -5,7 +5,7 @@ import { Colors, Font } from '../theme';
 import { Btn } from '../components/UI';
 import TypingIndicator from '../components/UI/TypingIndicator';
 import ArtBackground from '../components/ArtBackground';
-import { askDeepSeek, safeJSON } from '../services/api';
+import { askDeepSeek, safeJSON } from '../services/api'; // safeJSON має бути в api.js
 import { getCachedBriefing, cacheBriefing, getStreak } from '../services/storage';
 
 export default function Briefing({ topics }) {
@@ -17,7 +17,7 @@ export default function Briefing({ topics }) {
   const [error, setError] = useState(null);
   const [streak, setStreak] = useState(0);
   
-  const today = new Date().toLocaleDateString('uk-UA', { 
+  const today = new Date().toLocaleDateString('uk-RU', { 
     weekday: 'long', 
     day: 'numeric', 
     month: 'long' 
@@ -46,30 +46,33 @@ export default function Briefing({ topics }) {
     setError(null);
     try {
       if (safeTopics.length === 0) {
-        throw new Error('Теми не визначені');
+        throw new Error('Темы не определены');
       }
       
       const text = await askDeepSeek(
-        [{ role: 'user', content: `Сьогодні: ${today}. Інтереси користувача: ${safeTopics.join(', ')}. 
-Створи ранковий інтелектуальний брифінг, який розширює кругозір. 
-Включи 3-5 ключових подій дня з різних сфер (наука, технології, культура, суспільство, спорт тощо). 
-На основі них сформуй JSON без markdown:
+        [{ role: 'user', content: `Сегодня: ${today}. Интересы пользователя: ${safeTopics.join(', ')}. 
+Создай утренний интеллектуальный брифинг, который расширяет кругозор. 
+Включи 3-5 ключевых событий дня из разных сфер (наука, технологии, культура, общество, спорт и т.д.). 
+На их основе сформируй JSON без markdown:
 {
-  "headline": "Заголовок 8-12 слів, що інтригує",
-  "summary": "2-3 речення про найважливіше у світі сьогодні (згадай різні сфери)",
-  "insight": "1-2 речення — неочевидний зв'язок або глибокий контекст (може виходити за межі звичних тем)",
-  "question": "Один провокаційний запит на день",
-  "topic_tag": "Одне слово, що описує головну тему дня"
+  "headline": "Заголовок из 8-12 слов, интригующий",
+  "summary": "2-3 предложения о самом важном в мире сегодня (упомяни разные сферы)",
+  "insight": "1-2 предложения — неочевидная связь или глубокий контекст (может выходить за пределы привычных тем)",
+  "question": "Один провокационный запрос на день",
+  "topic_tag": "Одно слово, описывающее главную тему дня"
 }` }],
-        'Ти JARVIS — ранковий інтелектуальний асистент, який розширює світогляд. Відповідай ТІЛЬКИ валідним JSON без markdown. Мова: українська.'
+        'Ты JARVIS — утренний интеллектуальный ассистент, который расширяет кругозор. Отвечай ТОЛЬКО валидным JSON без markdown. Язык: русский.'
       );
+      
+      console.log('Raw response from DeepSeek:', text); // додано для налагодження
       
       const d = safeJSON(text);
       if (d) {
         setData(d);
         await cacheBriefing(d).catch(e => console.warn('Cache save failed', e));
       } else {
-        throw new Error('Невірний формат відповіді');
+        console.error('Failed to parse JSON. Raw response:', text);
+        throw new Error('Неверный формат ответа');
       }
     } catch (e) {
       console.error('Briefing error:', e.message);
@@ -95,7 +98,7 @@ export default function Briefing({ topics }) {
       >
         {streak > 1 && (
           <View style={s.streak}>
-            <Text style={s.streakTxt}>🔥 {streak} днів поспіль</Text>
+            <Text style={s.streakTxt}>🔥 {streak} дней подряд</Text>
           </View>
         )}
 
@@ -109,15 +112,15 @@ export default function Briefing({ topics }) {
 
           {loading ? (
             <>
-              <Text style={s.headingMuted}>Аналізую події...</Text>
+              <Text style={s.headingMuted}>Анализирую события...</Text>
               <TypingIndicator />
             </>
           ) : error ? (
             <>
-              <Text style={s.heading}>Не вдалося отримати брифінг</Text>
+              <Text style={s.heading}>Не удалось получить брифинг</Text>
               <Text style={s.body}>{error}</Text>
               <Btn 
-                label="Спробувати знову" 
+                label="Попробовать снова" 
                 onPress={generate} 
                 ghost 
                 style={{ marginTop: 16 }} 
@@ -137,22 +140,22 @@ export default function Briefing({ topics }) {
                 <Text style={s.insightTxt}>{data.insight || ''}</Text>
               </View>
               <View style={s.qBlock}>
-                <Text style={s.qLabel}>ПИТАННЯ ДНЯ</Text>
+                <Text style={s.qLabel}>ВОПРОС ДНЯ</Text>
                 <Text style={s.qTxt}>{data.question || ''}</Text>
               </View>
             </>
           ) : (
             <>
-              <Text style={s.heading}>Доброго ранку.{'\n'}Що важливо знати?</Text>
+              <Text style={s.heading}>Доброе утро.{'\n'}Что важно знать?</Text>
               <Text style={s.body}>
-                Персональний брифінг за темами: {safeTopics.join(', ') || 'не вибрано'}
+                Персональный брифинг по темам: {safeTopics.join(', ') || 'не выбрано'}
               </Text>
             </>
           )}
         </LinearGradient>
 
         <Btn
-          label={data ? '↻ Оновити брифінг' : '✦ Створити брифінг'}
+          label={data ? '↻ Обновить брифинг' : '✦ Создать брифинг'}
           onPress={generate}
           loading={loading}
           ghost
@@ -181,7 +184,7 @@ const s = StyleSheet.create({
   },
   streakTxt: { 
     fontFamily: Font.mono, 
-    fontSize: 12, 
+    fontSize: 16, 
     color: '#ff9040' 
   },
   hero: { 
@@ -193,7 +196,7 @@ const s = StyleSheet.create({
   },
   date: { 
     fontFamily: Font.mono, 
-    fontSize: 10, 
+    fontSize: 14, 
     color: Colors.muted, 
     textTransform: 'uppercase', 
     letterSpacing: 2, 
@@ -201,14 +204,14 @@ const s = StyleSheet.create({
   },
   heading: { 
     fontFamily: Font.serif, 
-    fontSize: 24, 
+    fontSize: 28, 
     lineHeight: 32, 
     color: Colors.text, 
     marginBottom: 10 
   },
   headingMuted: { 
     fontFamily: Font.serif, 
-    fontSize: 20, 
+    fontSize: 24, 
     color: Colors.muted, 
     marginBottom: 12 
   },
@@ -223,14 +226,14 @@ const s = StyleSheet.create({
   },
   tagTxt: { 
     fontFamily: Font.mono, 
-    fontSize: 10, 
+    fontSize: 14, 
     color: Colors.purple, 
     textTransform: 'uppercase', 
     letterSpacing: 1 
   },
   body: { 
     fontFamily: Font.sans, 
-    fontSize: 14, 
+    fontSize: 18, 
     color: Colors.textSub, 
     lineHeight: 22 
   },
@@ -242,7 +245,7 @@ const s = StyleSheet.create({
   },
   insightLabel: { 
     fontFamily: Font.mono, 
-    fontSize: 9, 
+    fontSize: 13, 
     color: Colors.purple, 
     textTransform: 'uppercase', 
     letterSpacing: 1.5, 
@@ -250,7 +253,7 @@ const s = StyleSheet.create({
   },
   insightTxt: { 
     fontFamily: Font.sans, 
-    fontSize: 13, 
+    fontSize: 17, 
     color: Colors.text, 
     lineHeight: 20 
   },
@@ -264,7 +267,7 @@ const s = StyleSheet.create({
   },
   qLabel: { 
     fontFamily: Font.mono, 
-    fontSize: 9, 
+    fontSize: 13, 
     color: Colors.green, 
     textTransform: 'uppercase', 
     letterSpacing: 2, 
@@ -272,7 +275,7 @@ const s = StyleSheet.create({
   },
   qTxt: { 
     fontFamily: Font.serifI, 
-    fontSize: 14, 
+    fontSize: 18, 
     color: Colors.text, 
     lineHeight: 21 
   },
@@ -282,7 +285,7 @@ const s = StyleSheet.create({
   },
   modelTxt: { 
     fontFamily: Font.mono, 
-    fontSize: 10, 
+    fontSize: 14, 
     color: Colors.muted, 
     letterSpacing: 1 
   },

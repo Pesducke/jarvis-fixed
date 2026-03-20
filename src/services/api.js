@@ -1,24 +1,32 @@
-const BACKEND_URL = 'http://192.168.0.104:8000/api/deepseek/chat';
+// src/services/api.js
+
+// ⚠️ ВАЖЛИВО: вставте сюди ваш справжній ключ DeepSeek
+const DEEPSEEK_API_KEY = 'sk-769d998392e34e9589379df1b644b55b'; // замініть на ваш ключ
+
+// Не змінюйте цей URL – це офіційний ендпоінт DeepSeek
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
 export async function askDeepSeek(messages, systemPrompt, useR1 = false, maxTokens = 2000) {
-  console.log('🔵 askDeepSeek called');
-  console.log('📍 URL:', BACKEND_URL);
-  console.log('📤 Messages:', JSON.stringify(messages).substring(0, 200));
-  console.log('🤖 System prompt:', systemPrompt.substring(0, 100));
+  console.log('🔵 askDeepSeek called (direct DeepSeek API)');
+  console.log('📍 URL:', DEEPSEEK_API_URL);
+  console.log('📤 Messages count:', messages.length);
+  console.log('🤖 System prompt:', systemPrompt?.substring(0, 100));
 
   const model = useR1 ? 'deepseek-reasoner' : 'deepseek-chat';
-  const fullMessages = [
-    { role: 'system', content: systemPrompt },
-    ...messages,
-  ];
+  const fullMessages = systemPrompt
+    ? [{ role: 'system', content: systemPrompt }, ...messages]
+    : messages;
 
   try {
     console.log('⏳ Sending fetch request...');
     const startTime = Date.now();
-    
-    const response = await fetch(BACKEND_URL, {
+
+    const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      },
       body: JSON.stringify({
         model: model,
         max_tokens: maxTokens,
@@ -38,7 +46,13 @@ export async function askDeepSeek(messages, systemPrompt, useR1 = false, maxToke
 
     const data = await response.json();
     console.log('📥 Response data:', data);
-    return data.content || '';
+
+    // DeepSeek повертає відповідь у data.choices[0].message.content
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('В ответе DeepSeek нет содержимого');
+    }
+    return content;
   } catch (error) {
     console.error('🔥 Fetch error:', error.message);
     console.error('🔍 Error details:', error);
@@ -46,6 +60,7 @@ export async function askDeepSeek(messages, systemPrompt, useR1 = false, maxToke
   }
 }
 
+// Функція для безпечного парсингу JSON (якщо DeepSeek іноді повертає JSON у тексті)
 export function safeJSON(text) {
   try {
     const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -61,15 +76,25 @@ export function safeJSON(text) {
   }
 }
 
-// Тестова функція для перевірки базового з'єднання
-export async function testBackendConnection() {
-  const baseUrl = BACKEND_URL.replace('/api/deepseek/chat', '');
+// Тестова функція для перевірки з'єднання з DeepSeek API
+export async function testDeepSeekConnection() {
   try {
-    console.log('🔄 Testing connection to:', baseUrl);
-    const response = await fetch(baseUrl);
-    const text = await response.text();
-    console.log('📡 Test response:', text);
-    return response.ok;
+    console.log('🔄 Testing DeepSeek API connection...');
+    const response = await fetch(DEEPSEEK_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'Hello' }],
+      }),
+    });
+    const ok = response.ok;
+    console.log('📡 DeepSeek API test:', ok ? 'success' : 'failed');
+    return ok;
   } catch (error) {
     console.error('❌ Test connection failed:', error.message);
     return false;

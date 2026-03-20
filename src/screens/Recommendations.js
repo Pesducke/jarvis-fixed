@@ -10,11 +10,11 @@ import ArtBackground from '../components/ArtBackground';
 
 // Константи з безпечним доступом
 const TYPE_ICON = { book: '📚', article: '📄', video: '▶', podcast: '🎧' };
-const TYPE_NAME = { book: 'Книга', article: 'Стаття', video: 'Відео', podcast: 'Подкаст' };
+const TYPE_NAME = { book: 'Книга', article: 'Статья', video: 'Видео', podcast: 'Подкаст' };
 const DIFF_COLOR = { easy: Colors.green, medium: Colors.accent, deep: Colors.purple };
-const DIFF_NAME = { easy: 'Легко', medium: 'Середньо', deep: 'Глибоко' };
+const DIFF_NAME = { easy: 'Легко', medium: 'Средне', deep: 'Глубоко' };
 const FILTERS = [
-  { id: 'all', label: 'Все' },
+  { id: 'all', label: 'Всё' },
   { id: 'book', label: '📚' },
   { id: 'article', label: '📄' },
   { id: 'video', label: '▶' },
@@ -23,7 +23,7 @@ const FILTERS = [
 
 // Допоміжні функції для безпечного доступу
 const getTypeIcon = (type) => TYPE_ICON[type] || '📄';
-const getTypeName = (type) => TYPE_NAME[type] || 'Матеріал';
+const getTypeName = (type) => TYPE_NAME[type] || 'Материал';
 const getDiffColor = (diff) => DIFF_COLOR[diff] || Colors.muted;
 const getDiffName = (diff) => DIFF_NAME[diff] || diff;
 
@@ -60,23 +60,19 @@ export default function Recommendations({ topics }) {
 {
   "items": [
     {
-      "id": "унікальний id",
+      "id": "уникальный id",
       "type": "book|article|video|podcast",
-      "title": "назва",
+      "title": "название",
       "author": "автор",
-      "description": "2-3 речення",
-      "why": "чому це саме цій людині",
+      "description": "2-3 предложения",
+      "why": "почему именно этому человеку",
       "difficulty": "easy|medium|deep",
-      "duration": "напр. 20 хв",
+      "duration": "напр. 20 мин",
       "topic": "тема"
     }
   ]
 }
-ВИМОГИ: тільки реально існуючі матеріали, різна складність. Не додавай жодного тексту, тільки JSON.` }],
-        'Ти JARVIS — персональний куратор знань. Рекомендуй тільки реальні матеріали. Відповідай ТІЛЬКИ валідним JSON. Мова: українська.',
-        false,
-        2000
-      );
+   ТРЕБОВАНИЯ: только реально существующие материалы, разная сложность. Не добавляй никакого текста, только JSON.` }], 'Ты JARVIS — персональный куратор знаний. Рекомендуй только реальные материалы. Отвечай ТОЛЬКО валидным JSON. Язык: русский.', false, 2000 );
 
       const d = safeJSON(text);
       if (d?.items && Array.isArray(d.items) && d.items.length > 0) {
@@ -84,7 +80,7 @@ export default function Recommendations({ topics }) {
         setItems(list);
         await cacheRecs(list);
       } else {
-        throw new Error('Невірний формат відповіді');
+        throw new Error('Неверный формат ответа');
       }
     } catch (e) {
       console.error('Recommendations error:', e.message);
@@ -140,10 +136,10 @@ export default function Recommendations({ topics }) {
         refreshControl={<RefreshControl refreshing={loading} onRefresh={generate} tintColor={Colors.accent} />}
       >
         <LinearGradient colors={['#141420','#0a0a0f']} style={s.hero} start={{x:0,y:0}} end={{x:1,y:1}}>
-          <Text style={s.heroLabel}>ПЕРСОНАЛЬНА ПІДБІРКА</Text>
-          <Text style={s.heroTitle}>Рекомендації</Text>
+          <Text style={s.heroLabel}>пЕРСОНАЛЬНАЯ ПОДБОРКА</Text>
+          <Text style={s.heroTitle}>Рекомендации</Text>
           <Text style={s.heroSub}>
-            Під твої інтереси:{' '}
+            Под твои интересы:{' '}
             <Text style={s.heroTopics}>
               {safeTopics.slice(0,3).join(', ')}{safeTopics.length > 3 ? '...' : ''}
             </Text>
@@ -186,31 +182,31 @@ export default function Recommendations({ topics }) {
         {loading && (
           <View style={s.loadWrap}>
             <TypingIndicator />
-            <Text style={s.loadTxt}>Підбираю матеріали для тебе...</Text>
+            <Text style={s.loadTxt}>Подбираю материалы для тебя...</Text>
           </View>
         )}
 
         {!loading && items.length === 0 && (
           <View style={s.empty}>
             <Text style={s.emptyIco}>◉</Text>
-            <Text style={s.emptyTitle}>Підбірка ще не завантажена</Text>
-            <Btn label="Завантажити рекомендації" onPress={generate} style={{ marginTop: 16 }} />
+            <Text style={s.emptyTitle}>Подборка ещё не загружена</Text>
+            <Btn label="Загрузить рекомендации" onPress={generate} style={{ marginTop: 16 }} />
           </View>
         )}
 
         {!loading && showSaved && saved.length === 0 && (
           <View style={s.empty}>
             <Text style={s.emptyIco}>☆</Text>
-            <Text style={s.emptyTitle}>Немає збережених</Text>
-            <Text style={s.emptyTxt}>Натисни ☆ на картці, щоб зберегти</Text>
+            <Text style={s.emptyTitle}>Нет сохранённых</Text>
+            <Text style={s.emptyTxt}>Нажми ☆ на карточке, чтобы сохранить</Text>
           </View>
         )}
 
         {!loading && shown.length === 0 && items.length > 0 && !showSaved && (
           <View style={s.empty}>
             <Text style={s.emptyIco}>🔍</Text>
-            <Text style={s.emptyTitle}>Нічого не знайдено</Text>
-            <Text style={s.emptyTxt}>Спробуй інший фільтр</Text>
+            <Text style={s.emptyTitle}>Ничего не найдено</Text>
+            <Text style={s.emptyTxt}>Попробуй другой фильтр</Text>
           </View>
         )}
 
@@ -240,13 +236,13 @@ export default function Recommendations({ topics }) {
               <Text style={s.cardDesc}>{item.description || ''}</Text>
               
               <View style={s.why}>
-                <Text style={s.whyLabel}>ЧОМУ ТОБІ</Text>
+                <Text style={s.whyLabel}>ПОЧЕМУ ТЕБЕ</Text>
                 <Text style={s.whyTxt}>{item.why || ''}</Text>
               </View>
               
               <View style={s.cardFoot}>
                 <View style={s.topicTag}>
-                  <Text style={s.topicTxt}>{item.topic || 'різне'}</Text>
+                  <Text style={s.topicTxt}>{item.topic || 'разное'}</Text>
                 </View>
                 <View style={s.acts}>
                   <TouchableOpacity 
@@ -267,7 +263,7 @@ export default function Recommendations({ topics }) {
         })}
 
         {!loading && items.length > 0 && !showSaved && (
-          <Btn label="↻ Нова підбірка" onPress={generate} ghost style={{ marginTop: 8 }} />
+          <Btn label="↻ Новая подборка" onPress={generate} ghost style={{ marginTop: 8 }} />
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -279,45 +275,45 @@ const s = StyleSheet.create({
   scroll: { flex: 1 },
   wrap: { padding: 24, paddingBottom: 100 },
   hero: { borderRadius: 20, padding: 24, marginBottom: 14, borderWidth: 1, borderColor: Colors.border2 },
-  heroLabel: { fontFamily: Font.mono, fontSize: 9, color: Colors.muted, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 },
-  heroTitle: { fontFamily: Font.serif, fontSize: 28, color: Colors.text, marginBottom: 6 },
-  heroSub: { fontFamily: Font.sans, fontSize: 13, color: Colors.muted, lineHeight: 20 },
+  heroLabel: { fontFamily: Font.mono, fontSize: 13, color: Colors.muted, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 },
+  heroTitle: { fontFamily: Font.serif, fontSize: 32, color: Colors.text, marginBottom: 6 },
+  heroSub: { fontFamily: Font.sans, fontSize: 17, color: Colors.muted, lineHeight: 20 },
   heroTopics: { color: Colors.accent },
   stats: { flexDirection: 'row', gap: 20, marginTop: 16 },
   stat: { alignItems: 'center' },
-  statN: { fontFamily: Font.mono, fontSize: 20, color: Colors.text },
-  statI: { fontSize: 14, marginTop: 2 },
+  statN: { fontFamily: Font.mono, fontSize: 24, color: Colors.text },
+  statI: { fontSize: 18, marginTop: 2 },
   filterRow: { gap: 6, paddingVertical: 4, marginBottom: 14 },
   ftab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 100, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface },
   ftabOn: { borderColor: Colors.purple, backgroundColor: '#7c6fff15' },
-  ftabTxt: { fontFamily: Font.mono, fontSize: 11, color: Colors.muted },
+  ftabTxt: { fontFamily: Font.mono, fontSize: 15, color: Colors.muted },
   ftabTxtOn: { color: Colors.purple },
   loadWrap: { alignItems: 'center', paddingVertical: 40, gap: 12 },
-  loadTxt: { fontFamily: Font.sans, fontSize: 13, color: Colors.muted },
+  loadTxt: { fontFamily: Font.sans, fontSize: 18, color: Colors.muted },
   empty: { alignItems: 'center', paddingVertical: 40 },
-  emptyIco: { fontSize: 36, marginBottom: 12 },
-  emptyTitle: { fontFamily: Font.serif, fontSize: 18, color: Colors.text, marginBottom: 6 },
-  emptyTxt: { fontFamily: Font.sans, fontSize: 13, color: Colors.muted },
+  emptyIco: { fontSize: 40, marginBottom: 12 },
+  emptyTitle: { fontFamily: Font.serif, fontSize: 22, color: Colors.text, marginBottom: 6 },
+  emptyTxt: { fontFamily: Font.sans, fontSize: 17, color: Colors.muted },
   card: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, padding: 16, marginBottom: 10 },
   cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   typeTag: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  typeIco: { fontSize: 13 },
-  typeTxt: { fontFamily: Font.mono, fontSize: 10, color: Colors.muted, textTransform: 'uppercase', letterSpacing: 1 },
+  typeIco: { fontSize: 17 },
+  typeTxt: { fontFamily: Font.mono, fontSize: 14, color: Colors.muted, textTransform: 'uppercase', letterSpacing: 1 },
   diff: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 100, paddingHorizontal: 8, paddingVertical: 3 },
   diffDot: { width: 4, height: 4, borderRadius: 2 },
-  diffTxt: { fontFamily: Font.mono, fontSize: 10 },
-  cardTitle: { fontFamily: Font.serif, fontSize: 17, color: Colors.text, lineHeight: 24, marginBottom: 3 },
-  cardAuthor: { fontFamily: Font.mono, fontSize: 11, color: Colors.muted, marginBottom: 10 },
-  cardDesc: { fontFamily: Font.sans, fontSize: 13, color: Colors.textSub, lineHeight: 20, marginBottom: 12 },
+  diffTxt: { fontFamily: Font.mono, fontSize: 14 },
+  cardTitle: { fontFamily: Font.serif, fontSize: 21, color: Colors.text, lineHeight: 24, marginBottom: 3 },
+  cardAuthor: { fontFamily: Font.mono, fontSize: 14, color: Colors.muted, marginBottom: 10 },
+  cardDesc: { fontFamily: Font.sans, fontSize: 17, color: Colors.textSub, lineHeight: 20, marginBottom: 12 },
   why: { backgroundColor: Colors.surface2, borderRadius: 8, padding: 10, marginBottom: 12, borderLeftWidth: 2, borderLeftColor: Colors.purple+'60' },
-  whyLabel: { fontFamily: Font.mono, fontSize: 9, color: Colors.purple, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4 },
-  whyTxt: { fontFamily: Font.sans, fontSize: 12, color: Colors.textSub, lineHeight: 18 },
+  whyLabel: { fontFamily: Font.mono, fontSize: 13, color: Colors.purple, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4 },
+  whyTxt: { fontFamily: Font.sans, fontSize: 16, color: Colors.textSub, lineHeight: 18 },
   cardFoot: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   topicTag: { backgroundColor: Colors.surface2, borderRadius: 100, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: Colors.border2 },
-  topicTxt: { fontFamily: Font.mono, fontSize: 10, color: Colors.muted },
+  topicTxt: { fontFamily: Font.mono, fontSize: 14, color: Colors.muted },
   acts: { flexDirection: 'row', gap: 6 },
   act: { width: 32, height: 32, borderRadius: 8, backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border2, alignItems: 'center', justifyContent: 'center' },
   actOn: { borderColor: Colors.accent+'60', backgroundColor: Colors.accent+'10' },
-  actTxt: { fontSize: 14, color: Colors.muted },
+  actTxt: { fontSize: 18, color: Colors.muted },
   actTxtOn: { color: Colors.accent },
 });

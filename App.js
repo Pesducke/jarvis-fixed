@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Platform } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
 import {
   DMSerifDisplay_400Regular,
   DMSerifDisplay_400Regular_Italic,
@@ -16,9 +15,7 @@ import Briefing from './src/screens/Briefing';
 import Dialogue from './src/screens/Dialogue';
 import Snapshot from './src/screens/Snapshot';
 import Recommendations from './src/screens/Recommendations';
-
-// Запрещаем автоматическое скрытие сплеш-скрина
-SplashScreen.preventAutoHideAsync();
+import SplashScreen from './src/screens/SplashScreen'; // наш новий сплеш
 
 const TABS = [
   { id: 'briefing', label: 'Брифинг', icon: '◎' },
@@ -30,7 +27,7 @@ const TABS = [
 export default function App() {
   const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState('briefing');
-  const [ready, setReady] = useState(false); // готово ли приложение к показу
+  const [showSplash, setShowSplash] = useState(true); // спочатку показуємо сплеш
   const today = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 
   // Загружаем шрифты
@@ -43,29 +40,21 @@ export default function App() {
     DMSans_500Medium,
   });
 
-  // Эффект, который запускается после загрузки шрифтов
+  // Эффект для загрузки профиля после того, как сплеш скроется
   useEffect(() => {
-    async function prepare() {
-      if (!fontsLoaded) return;
-
-      try {
-        const p = await getProfile();
-        setProfile(p);
-      } catch (error) {
-        // Можно залогировать ошибку, но необязательно
-        console.error('Ошибка загрузки профиля:', error);
-      }
-
-      // Всё готово, можно скрывать сплеш-скрин
-      setReady(true);
-      await SplashScreen.hideAsync();
+    if (!showSplash && fontsLoaded) {
+      // Загружаем профиль, когда шрифты загружены и сплеш скрыт
+      getProfile().then(setProfile).catch(console.error);
     }
+  }, [showSplash, fontsLoaded]);
 
-    prepare();
-  }, [fontsLoaded]); // Зависимость — шрифты загружены
+  // Показываем сплеш, пока он не скрыт
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
 
-  // Показываем пустой фон, пока не готово
-  if (!fontsLoaded || !ready) {
+  // Если шрифты ещё не загружены – показываем пустой экран (такого не должно быть, т.к. сплеш скрывается через 5 сек)
+  if (!fontsLoaded) {
     return <View style={{ flex: 1, backgroundColor: Colors.bg }} />;
   }
 
@@ -138,7 +127,7 @@ const s = StyleSheet.create({
     paddingBottom: 8,
   },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  logo: { fontFamily: F.mono, fontSize: 14, letterSpacing: 3, color: Colors.accent },
+  logo: { fontFamily: F.mono, fontSize: 18, letterSpacing: 3, color: Colors.accent },
   logoMuted: { color: Colors.muted },
   badge: {
     backgroundColor: '#0f4c7515',
@@ -148,8 +137,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
-  badgeTxt: { fontFamily: F.mono, fontSize: 9, color: '#4da6e0', letterSpacing: 0.5 },
-  date: { fontFamily: F.mono, fontSize: 11, color: Colors.muted },
+  badgeTxt: { fontFamily: F.mono, fontSize: 13, color: '#4da6e0', letterSpacing: 0.5 },
+  date: { fontFamily: F.mono, fontSize: 15, color: Colors.muted },
   body: { flex: 1 },
   tabs: {
     flexDirection: 'row',
@@ -166,11 +155,11 @@ const s = StyleSheet.create({
     marginHorizontal: 4,
   },
   tabOn: { backgroundColor: Colors.surface2 },
-  tabIco: { fontSize: 16, color: Colors.muted, marginBottom: 2 },
+  tabIco: { fontSize: 20, color: Colors.muted, marginBottom: 2 },
   tabIcoOn: { color: Colors.purple },
   tabLbl: {
     fontFamily: F.mono,
-    fontSize: 9,
+    fontSize: 13,
     color: Colors.muted,
     textTransform: 'uppercase',
     letterSpacing: 1,

@@ -33,7 +33,7 @@ export default function TypingIndicator() {
 
   const dotStyle = (opacity) => ({
     opacity,
-    fontSize: 24,
+    fontSize: 28,
     color: Colors.accent,
     marginHorizontal: 2,
   });
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: Font.mono,
-    fontSize: 16,
+    fontSize: 20,
     color: Colors.muted,
     marginRight: 4,
   },

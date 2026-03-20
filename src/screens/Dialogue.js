@@ -8,16 +8,16 @@ import { askDeepSeek } from '../services/api';
 import ArtBackground from '../components/ArtBackground';
 
 const THEMES = [
-  { title: 'Ілюзія продуктивності', desc: 'Ми зайняті — але чи рухаємось вперед? У чому різниця між активністю і прогресом?' },
-  { title: 'Ціна визначеності', desc: 'Чому ми віддаємо перевагу впевненій брехні над незручною правдою?' },
-  { title: 'Хто приймає твої рішення?', desc: 'Наскільки твої вибори дійсно твої — а не продукт середовища і втоми?' },
-  { title: 'Складність як привілей', desc: 'Здатність переносити невизначеність — навичка чи риса характеру?' },
-  { title: 'Провал як дані', desc: 'Що якщо невдача — не те, чого уникають, а те, що читають?' },
-  { title: 'Коли мовчання розумніше слів', desc: 'У яких ситуаціях відмова відповідати — найсильніша відповідь?' },
+  { title: 'Иллюзия продуктивности', desc: 'Мы заняты — но движемся ли мы вперед? В чем разница между активностью и прогрессом?' },
+  { title: 'Цена определенности', desc: 'Почему мы предпочитаем уверенную ложь неудобной правде?' },
+  { title: 'Кто принимает твои решения?', desc: 'Насколько твой выбор действительно твой — а не продукт среды и усталости?' },
+  { title: 'Сложность как привилегия', desc: 'Способность переносить неопределенность — навык или черта характера?' },
+  { title: 'Провал как данные', desc: 'Что если неудача — не то, чего избегают, а то, что читают?' },
+  { title: 'Когда молчание разумнее слов', desc: 'В каких ситуациях отказ отвечать — самый сильный ответ?' },
 ];
 
 const SYS = (theme) =>
-  `Ти JARVIS — інтелектуальний співрозмовник, який практикує сократівський метод. Тема: "${theme}". Правила: кожна відповідь закінчується ОДНИМ питанням, що поглиблює тему; вказуй на суперечності; не погоджуйся легко; 2-3 речення + питання. Мова: українська.`;
+  `Ты JARVIS — интеллектуальный собеседник, который практикует сократический метод. Тема: "${theme}". Правила: каждый ответ заканчивается ОДНИМ вопросом, углубляющим тему; указывай на противоречия; не соглашайся легко; 2-3 предложения + вопрос. Язык: русский.`;
 
 export default function Dialogue() {
   const [theme] = useState(() => THEMES[Math.floor(Math.random() * THEMES.length)]);
@@ -42,7 +42,7 @@ export default function Dialogue() {
     setLoading(true);
     try {
       const reply = await askDeepSeek(
-        [{ role: 'user', content: 'Почни діалог — одне відкриваюче питання за темою.' }],
+        [{ role: 'user', content: 'Начни диалог — один открытый вопрос по теме.' }],
         SYS(theme.title), useR1
       );
       setMsgs([{ who: 'j', txt: reply }]);
@@ -104,7 +104,7 @@ export default function Dialogue() {
               <View style={s.r1row}>
                 <View>
                   <Text style={s.r1label}>DeepSeek R1</Text>
-                  <Text style={s.r1desc}>Глибокий аналіз (повільніше)</Text>
+                  <Text style={s.r1desc}>Глубокий анализ (медленнее)</Text>
                 </View>
                 <Switch 
                   value={useR1} 
@@ -117,7 +117,7 @@ export default function Dialogue() {
           </LinearGradient>
 
           {!started ? (
-            <Btn label="Розпочати діалог →" onPress={start} />
+            <Btn label="Начать диалог →" onPress={start} />
           ) : (
             <>
               {safeMsgs.map((m, i) => (
@@ -157,7 +157,7 @@ export default function Dialogue() {
               <TextInput
                 ref={inputRef}
                 style={s.input}
-                placeholder="Твоя думка..."
+                placeholder="Твоя мысль..."
                 placeholderTextColor={Colors.muted}
                 value={input}
                 onChangeText={setInput}
@@ -183,28 +183,28 @@ export default function Dialogue() {
 const s = StyleSheet.create({
   wrap: { padding: 24, paddingBottom: 20 },
   card: { borderRadius: 20, padding: 24, marginBottom: 16, borderWidth: 1, borderColor: '#2a1f38' },
-  label: { fontFamily: Font.mono, fontSize: 10, color: Colors.purple, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 },
-  title: { fontFamily: Font.serif, fontSize: 22, color: Colors.text, marginBottom: 8 },
-  desc: { fontFamily: Font.sans, fontSize: 13, color: Colors.textSub, lineHeight: 20 },
+  label: { fontFamily: Font.mono, fontSize: 14, color: Colors.purple, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 },
+  title: { fontFamily: Font.serif, fontSize: 26, color: Colors.text, marginBottom: 8 },
+  desc: { fontFamily: Font.sans, fontSize: 17, color: Colors.textSub, lineHeight: 20 },
   r1row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: Colors.border },
-  r1label: { fontFamily: Font.mono, fontSize: 11, color: Colors.purple },
-  r1desc: { fontFamily: Font.sans, fontSize: 11, color: Colors.muted, marginTop: 2 },
+  r1label: { fontFamily: Font.mono, fontSize: 15, color: Colors.purple },
+  r1desc: { fontFamily: Font.sans, fontSize: 15, color: Colors.muted, marginTop: 2 },
   row: { flexDirection: 'row', gap: 10, marginBottom: 12, alignItems: 'flex-start' },
   rowU: { flexDirection: 'row-reverse' },
   av: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   avJ: { backgroundColor: '#7c6fff15', borderWidth: 1, borderColor: '#7c6fff25' },
   avU: { backgroundColor: '#c8b89a10', borderWidth: 1, borderColor: '#c8b89a20' },
-  avTxtJ: { fontFamily: Font.mono, fontSize: 11, color: Colors.purple },
-  avTxtU: { fontFamily: Font.mono, fontSize: 11, color: Colors.accent },
+  avTxtJ: { fontFamily: Font.mono, fontSize: 15, color: Colors.purple },
+  avTxtU: { fontFamily: Font.mono, fontSize: 15, color: Colors.accent },
   bubble: { flex: 1, padding: 12, borderRadius: 12 },
   bubJ: { backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border2, borderTopLeftRadius: 4 },
   bubU: { backgroundColor: '#c8b89a08', borderWidth: 1, borderColor: '#c8b89a15', borderTopRightRadius: 4 },
-  bubTxt: { fontFamily: Font.sans, fontSize: 14, color: Colors.text, lineHeight: 22 },
+  bubTxt: { fontFamily: Font.sans, fontSize: 18, color: Colors.text, lineHeight: 22 },
   bubTxtU: { color: Colors.textSub },
   bar: { backgroundColor: 'transparent', paddingHorizontal: 24, paddingVertical: 12, paddingBottom: Platform.OS === 'ios' ? 28 : 12, borderTopWidth: 1, borderTopColor: Colors.border },
   inputRow: { flexDirection: 'row', gap: 8, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border2, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'flex-end' },
-  input: { flex: 1, fontFamily: Font.sans, fontSize: 14, color: Colors.text, maxHeight: 80, paddingVertical: 4 },
+  input: { flex: 1, fontFamily: Font.sans, fontSize: 18, color: Colors.text, maxHeight: 80, paddingVertical: 4 },
   send: { width: 34, height: 34, borderRadius: 10, backgroundColor: Colors.purple, alignItems: 'center', justifyContent: 'center' },
   sendOff: { opacity: 0.3 },
-  sendTxt: { color: '#fff', fontSize: 16 },
+  sendTxt: { color: '#fff', fontSize: 20 },
 });
