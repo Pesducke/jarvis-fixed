@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Switch } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Font } from '../theme';
 import { Btn } from '../components/UI';
@@ -25,12 +25,11 @@ export default function Dialogue() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
-  const [useR1, setUseR1] = useState(false);
   
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Автоскрол до останнього повідомлення
+  // Автоскрол до последнего сообщения
   useEffect(() => {
     if (scrollRef.current && msgs.length > 0) {
       setTimeout(() => scrollRef.current.scrollToEnd({ animated: true }), 100);
@@ -43,10 +42,10 @@ export default function Dialogue() {
     try {
       const reply = await askDeepSeek(
         [{ role: 'user', content: 'Начни диалог — один открытый вопрос по теме.' }],
-        SYS(theme.title), useR1
+        SYS(theme.title)
+        // третий аргумент (useR1) удалён
       );
       setMsgs([{ who: 'j', txt: reply }]);
-      // Фокус на поле вводу після початку
       setTimeout(() => inputRef.current?.focus(), 300);
     } catch (e) { 
       console.error(e.message);
@@ -70,7 +69,7 @@ export default function Dialogue() {
         role: m.who === 'j' ? 'assistant' : 'user', 
         content: m.txt 
       }));
-      const reply = await askDeepSeek(api, SYS(theme.title), useR1);
+      const reply = await askDeepSeek(api, SYS(theme.title));
       setMsgs(prev => [...prev, { who: 'j', txt: reply }]);
     } catch (e) { 
       console.error(e.message);
@@ -80,7 +79,6 @@ export default function Dialogue() {
     }
   }
 
-  // Безпечний масив повідомлень
   const safeMsgs = Array.isArray(msgs) ? msgs : [];
 
   return (
@@ -100,20 +98,7 @@ export default function Dialogue() {
             <Text style={s.label}>ТЕМА ДНЯ</Text>
             <Text style={s.title}>{theme?.title || ''}</Text>
             <Text style={s.desc}>{theme?.desc || ''}</Text>
-            {!started && (
-              <View style={s.r1row}>
-                <View>
-                  <Text style={s.r1label}>DeepSeek R1</Text>
-                  <Text style={s.r1desc}>Глубокий анализ (медленнее)</Text>
-                </View>
-                <Switch 
-                  value={useR1} 
-                  onValueChange={setUseR1} 
-                  trackColor={{ false: Colors.border2, true: Colors.purple + '80' }} 
-                  thumbColor={useR1 ? Colors.purple : Colors.muted} 
-                />
-              </View>
-            )}
+            {/* Блок с переключателем R1 удалён */}
           </LinearGradient>
 
           {!started ? (
@@ -186,9 +171,7 @@ const s = StyleSheet.create({
   label: { fontFamily: Font.mono, fontSize: 14, color: Colors.purple, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 },
   title: { fontFamily: Font.serif, fontSize: 26, color: Colors.text, marginBottom: 8 },
   desc: { fontFamily: Font.sans, fontSize: 17, color: Colors.textSub, lineHeight: 20 },
-  r1row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: Colors.border },
-  r1label: { fontFamily: Font.mono, fontSize: 15, color: Colors.purple },
-  r1desc: { fontFamily: Font.sans, fontSize: 15, color: Colors.muted, marginTop: 2 },
+  // стиль r1row удалён
   row: { flexDirection: 'row', gap: 10, marginBottom: 12, alignItems: 'flex-start' },
   rowU: { flexDirection: 'row-reverse' },
   av: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginTop: 2 },

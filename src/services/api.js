@@ -1,18 +1,14 @@
 // src/services/api.js
-
-// ⚠️ ВАЖЛИВО: вставте сюди ваш справжній ключ DeepSeek
-const DEEPSEEK_API_KEY = 'sk-769d998392e34e9589379df1b644b55b'; // замініть на ваш ключ
-
-// Не змінюйте цей URL – це офіційний ендпоінт DeepSeek
+const DEEPSEEK_API_KEY = 'sk-769d998392e34e9589379df1b644b55b';
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
-export async function askDeepSeek(messages, systemPrompt, useR1 = false, maxTokens = 2000) {
+export async function askDeepSeek(messages, systemPrompt) {
   console.log('🔵 askDeepSeek called (direct DeepSeek API)');
   console.log('📍 URL:', DEEPSEEK_API_URL);
   console.log('📤 Messages count:', messages.length);
   console.log('🤖 System prompt:', systemPrompt?.substring(0, 100));
 
-  const model = useR1 ? 'deepseek-reasoner' : 'deepseek-chat';
+  const model = 'deepseek-chat';
   const fullMessages = systemPrompt
     ? [{ role: 'system', content: systemPrompt }, ...messages]
     : messages;
@@ -29,7 +25,7 @@ export async function askDeepSeek(messages, systemPrompt, useR1 = false, maxToke
       },
       body: JSON.stringify({
         model: model,
-        max_tokens: maxTokens,
+        max_tokens: 2000,          // фиксированное значение, можно изменить
         temperature: 0.8,
         messages: fullMessages,
       }),
@@ -47,20 +43,16 @@ export async function askDeepSeek(messages, systemPrompt, useR1 = false, maxToke
     const data = await response.json();
     console.log('📥 Response data:', data);
 
-    // DeepSeek повертає відповідь у data.choices[0].message.content
     const content = data.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error('В ответе DeepSeek нет содержимого');
-    }
+    if (!content) throw new Error('В ответе DeepSeek нет содержимого');
     return content;
   } catch (error) {
     console.error('🔥 Fetch error:', error.message);
-    console.error('🔍 Error details:', error);
     throw error;
   }
 }
 
-// Функція для безпечного парсингу JSON (якщо DeepSeek іноді повертає JSON у тексті)
+// Функция для безопасного парсинга JSON (если DeepSeek иногда возвращает JSON в тексте)
 export function safeJSON(text) {
   try {
     const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -76,7 +68,7 @@ export function safeJSON(text) {
   }
 }
 
-// Тестова функція для перевірки з'єднання з DeepSeek API
+// Тестовая функция для проверки соединения с DeepSeek API
 export async function testDeepSeekConnection() {
   try {
     console.log('🔄 Testing DeepSeek API connection...');
