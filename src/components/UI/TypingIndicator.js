@@ -40,7 +40,7 @@ export default function TypingIndicator() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>JARVIS набирає</Text>
+      <Text style={styles.text}>LEV пишет</Text>
       <View style={styles.dots}>
         <Animated.Text style={dotStyle(dot1)}>.</Animated.Text>
         <Animated.Text style={dotStyle(dot2)}>.</Animated.Text>

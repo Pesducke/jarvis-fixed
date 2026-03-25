@@ -1,23 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Font } from '../theme';
 import { Btn } from '../components/UI';
 import TypingIndicator from '../components/UI/TypingIndicator';
 import ArtBackground from '../components/ArtBackground';
-import { askDeepSeek, safeJSON } from '../services/api'; // safeJSON має бути в api.js
+import { generateBriefing } from '../services/briefing'; // новый сервис
 import { getCachedBriefing, cacheBriefing, getStreak } from '../services/storage';
 
 export default function Briefing({ topics }) {
-  // Захист від undefined topics
   const safeTopics = Array.isArray(topics) ? topics : [];
   
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [streak, setStreak] = useState(0);
+  const [mode, setMode] = useState('standard'); // 'espresso', 'standard', 'deep'
   
-  const today = new Date().toLocaleDateString('uk-RU', { 
+  const today = new Date().toLocaleDateString('ru-RU', { 
     weekday: 'long', 
     day: 'numeric', 
     month: 'long' 
@@ -42,45 +42,27 @@ export default function Briefing({ topics }) {
   }
 
   const generate = useCallback(async () => {
+    if (safeTopics.length === 0) {
+      setError('Темы не определены. Заполните их в профиле.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      if (safeTopics.length === 0) {
-        throw new Error('Темы не определены');
-      }
-      
-      const text = await askDeepSeek(
-        [{ role: 'user', content: `Сегодня: ${today}. Интересы пользователя: ${safeTopics.join(', ')}. 
-Создай утренний интеллектуальный брифинг, который расширяет кругозор. 
-Включи 3-5 ключевых событий дня из разных сфер (наука, технологии, культура, общество, спорт и т.д.). 
-На их основе сформируй JSON без markdown:
-{
-  "headline": "Заголовок из 8-12 слов, интригующий",
-  "summary": "2-3 предложения о самом важном в мире сегодня (упомяни разные сферы)",
-  "insight": "1-2 предложения — неочевидная связь или глубокий контекст (может выходить за пределы привычных тем)",
-  "question": "Один провокационный запрос на день",
-  "topic_tag": "Одно слово, описывающее главную тему дня"
-}` }],
-        'Ты JARVIS — утренний интеллектуальный ассистент, который расширяет кругозор. Отвечай ТОЛЬКО валидным JSON без markdown. Язык: русский.'
-      );
-      
-      console.log('Raw response from DeepSeek:', text); // додано для налагодження
-      
-      const d = safeJSON(text);
-      if (d) {
-        setData(d);
-        await cacheBriefing(d).catch(e => console.warn('Cache save failed', e));
-      } else {
-        console.error('Failed to parse JSON. Raw response:', text);
-        throw new Error('Неверный формат ответа');
-      }
+      const result = await generateBriefing({
+        interests: safeTopics,
+        mode: mode,
+        language: 'ru',
+      });
+      setData(result);
+      await cacheBriefing(result).catch(e => console.warn('Cache save failed', e));
     } catch (e) {
       console.error('Briefing error:', e.message);
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [today, safeTopics]);
+  }, [mode, safeTopics]);
 
   return (
     <ArtBackground>
@@ -101,6 +83,28 @@ export default function Briefing({ topics }) {
             <Text style={s.streakTxt}>🔥 {streak} дней подряд</Text>
           </View>
         )}
+
+        {/* Переключатель режимов */}
+        <View style={s.modeSelector}>
+          <TouchableOpacity 
+            style={[s.modeBtn, mode === 'espresso' && s.modeActive]} 
+            onPress={() => setMode('espresso')}
+          >
+            <Text style={[s.modeBtnText, mode === 'espresso' && s.modeActiveText]}>☕ Эспрессо</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[s.modeBtn, mode === 'standard' && s.modeActive]} 
+            onPress={() => setMode('standard')}
+          >
+            <Text style={[s.modeBtnText, mode === 'standard' && s.modeActiveText]}>📄 Стандарт</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[s.modeBtn, mode === 'deep' && s.modeActive]} 
+            onPress={() => setMode('deep')}
+          >
+            <Text style={[s.modeBtnText, mode === 'deep' && s.modeActiveText]}>🌊 Погружение</Text>
+          </TouchableOpacity>
+        </View>
 
         <LinearGradient 
           colors={['#1a1a28','#0f0f1a']} 
@@ -162,7 +166,7 @@ export default function Briefing({ topics }) {
         />
 
         <View style={s.modelBadge}>
-          <Text style={s.modelTxt}>⚡ Powered by DeepSeek</Text>
+          <Text style={s.modelTxt}>⚡ Powered by DeepSeek + реальные новости</Text>
         </View>
       </ScrollView>
     </ArtBackground>
@@ -186,6 +190,33 @@ const s = StyleSheet.create({
     fontFamily: Font.mono, 
     fontSize: 16, 
     color: '#ff9040' 
+  },
+  modeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 16,
+  },
+  modeBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border2,
+    backgroundColor: Colors.surface2,
+    alignItems: 'center',
+  },
+  modeActive: {
+    backgroundColor: Colors.purple,
+    borderColor: Colors.purple,
+  },
+  modeBtnText: {
+    fontFamily: Font.mono,
+    fontSize: 12,
+    color: Colors.muted,
+  },
+  modeActiveText: {
+    color: '#fff',
   },
   hero: { 
     borderRadius: 20, 

@@ -8,7 +8,7 @@ import { askDeepSeek, safeJSON } from '../services/api';
 import { saveSnapshot, getSnapshots } from '../services/storage';
 
 export default function Snapshot({ topics }) {
-  // Захист від undefined topics
+  // Защита от undefined topics
   const safeTopics = Array.isArray(topics) ? topics : [];
   
   const [data, setData] = useState(null);
@@ -17,7 +17,8 @@ export default function Snapshot({ topics }) {
   const [showHistory, setShowHistory] = useState(false);
   
   const week = Math.ceil(new Date().getDate() / 7);
-  const month = new Date().toLocaleDateString('uk-RU', { 
+  // Исправлена локаль: 'ru-RU' вместо 'uk-RU' (для русскоязычного интерфейса)
+  const month = new Date().toLocaleDateString('ru-RU', { 
     month: 'long', 
     year: 'numeric' 
   });
@@ -46,7 +47,7 @@ export default function Snapshot({ topics }) {
   "blind_spot": "Провокационная слепая зона одним предложением",
   "question_for_week": "глубокий вопрос на неделю"
 }` }],
-        'Ты JARVIS — когнитивный зеркальный ассистент. Отвечай ТОЛЬКО валидным JSON без markdown. Язык: русский.'
+        'Ты LEV — когнитивный зеркальный ассистент. Отвечай ТОЛЬКО валидным JSON без markdown. Язык: русский.'
       );
       
       const d = safeJSON(text);
@@ -67,7 +68,7 @@ export default function Snapshot({ topics }) {
     setLoading(false);
   }, [week, month, safeTopics]);
 
-  // Безпечний масив shifts
+  // Безопасный массив shifts
   const shifts = data?.shifts || [];
 
   return (
@@ -88,7 +89,7 @@ export default function Snapshot({ topics }) {
             <Text style={s.emptyIco}>🪞</Text>
             <Text style={s.emptyTitle}>Готов к честному разбору?</Text>
             <Text style={s.emptyTxt}>
-              JARVIS проанализирует слепые зоны.{'\n'}і сдвиги в мышлении за неделю
+              LEV проанализирует слепые зоны.{'\n'}и сдвиги в мышлении за неделю
             </Text>
             <Btn 
               label="Показать срез" 
@@ -101,7 +102,7 @@ export default function Snapshot({ topics }) {
         {loading && (
           <View style={s.empty}>
             <Text style={s.emptyIco}>⏳</Text>
-            <Text style={s.emptyTitle}>Аналізую патерни...</Text>
+            <Text style={s.emptyTitle}>Анализирую паттерны...</Text>
             <TypingIndicator />
           </View>
         )}
@@ -127,7 +128,7 @@ export default function Snapshot({ topics }) {
 
             <SectionLabel text="Слепая зона" />
             <View style={s.blind}>
-              <Text style={s.blindLabel}>⚠ JARVIS помітив</Text>
+              <Text style={s.blindLabel}>⚠ LEV заметил</Text>
               <Text style={s.blindTxt}>{data.blind_spot || ''}</Text>
             </View>
 

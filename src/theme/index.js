@@ -11,6 +11,7 @@ export const Colors = {
   purple: '#7c6fff',
   green: '#4ade80',
   red: '#f87171',
+  error: '#CF6679', // или любой другой цвет
 };
 
 export const Font = {

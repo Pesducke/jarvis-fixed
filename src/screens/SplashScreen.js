@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)', // лёгкое затемнение для читаемости текста
+    
   },
   quoteContainer: {
     maxWidth: width * 0.9,
