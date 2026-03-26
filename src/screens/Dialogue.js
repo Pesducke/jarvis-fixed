@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Font } from '../theme';
 import { Btn } from '../components/UI';
@@ -22,6 +23,16 @@ import ArtBackground from '../components/ArtBackground';
 import { saveDialogue } from '../services/dialogueStorage';
 import { ALL_PERSONALITIES, DEFAULT_PERSONALITY } from '../constants/personalities';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveTheme, getThemeHistory } from '../services/themeHistory';
+// ==================== ДОБАВЛЕНО ДЛЯ ГОЛОСА ====================
+import { 
+  speakText, 
+  isVoiceEnabled, 
+  setVoiceEnabled, 
+  loadVoiceSettings,
+  initVoice 
+} from '../services/voice';
+// ==============================================================
 
 // Статический массив тем для fallback (если генерация не удастся)
 const STATIC_THEMES = [
@@ -53,6 +64,10 @@ export default function Dialogue({ topics = [] }) {
   const [summary, setSummary] = useState('');
   const [summarizing, setSummarizing] = useState(false);
 
+  // ==================== ДОБАВЛЕНО ДЛЯ ГОЛОСА ====================
+  const [voiceEnabled, setVoiceEnabledState] = useState(false);
+  // ==============================================================
+
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -64,6 +79,11 @@ export default function Dialogue({ topics = [] }) {
         if (savedProvocateur !== null) setProvocateur(savedProvocateur === 'true');
         const savedPersonality = await AsyncStorage.getItem(STORAGE_PERSONALITY_KEY);
         if (savedPersonality !== null) setPersonalityId(savedPersonality);
+        // ==================== ДОБАВЛЕНО ====================
+        await loadVoiceSettings();
+        await initVoice();
+        setVoiceEnabledState(isVoiceEnabled());
+        // ====================================================
       } catch (error) {
         console.error('Failed to load settings:', error);
       }
@@ -80,6 +100,12 @@ export default function Dialogue({ topics = [] }) {
     AsyncStorage.setItem(STORAGE_PERSONALITY_KEY, personalityId).catch(console.error);
   }, [personalityId]);
 
+  // ==================== ДОБАВЛЕНО ДЛЯ СОХРАНЕНИЯ ГОЛОСА ====================
+  useEffect(() => {
+    setVoiceEnabled(voiceEnabled).catch(console.error);
+  }, [voiceEnabled]);
+  // ========================================================================
+
   // Автоскролл
   useEffect(() => {
     if (scrollRef.current && msgs.length > 0) {
@@ -89,31 +115,34 @@ export default function Dialogue({ topics = [] }) {
 
   // Генерация темы через DeepSeek на основе интересов
   const generateTopicFromInterests = async () => {
-    setGeneratingTheme(true);
-    try {
-      const interestsStr = topics.length ? topics.join(', ') : 'разные темы';
-      const prompt = `Ты — креативный помощник. Придумай одну глубокую философскую или психологическую тему для диалога. 
-Интересы пользователя: ${interestsStr}.
+  setGeneratingTheme(true);
+  try {
+    const interestsStr = topics.length ? topics.join(', ') : 'разные темы';
+    const history = await getThemeHistory();
+    const historyStr = history.length ? `\nНедавние темы (не повторяй их): ${history.join(', ')}` : '';
+    
+    const prompt = `Ты — креативный помощник. Придумай одну глубокую философскую или психологическую тему для диалога. 
+Интересы пользователя: ${interestsStr}.${historyStr}
 Формат ответа: строго JSON: {"title": "Название темы", "desc": "Краткое описание, почему это важно"}. 
-Название должно быть ёмким, а описание — провокационным.`;
+Название должно быть ёмким, а описание — метакогниция.`;
 
-      const result = await askDeepSeek([], prompt);
-      // Извлечь JSON из ответа
-      const jsonMatch = result.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return { title: parsed.title, desc: parsed.desc };
-      }
-      throw new Error('Некорректный формат ответа');
-    } catch (error) {
-      console.error('Ошибка генерации темы:', error);
-      // Fallback: случайная тема из статического списка
-      const fallback = STATIC_THEMES[Math.floor(Math.random() * STATIC_THEMES.length)];
-      return { title: fallback.title, desc: fallback.desc };
-    } finally {
-      setGeneratingTheme(false);
+    const result = await askDeepSeek([], prompt);
+    const jsonMatch = result.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      await saveTheme(parsed.title);
+      return { title: parsed.title, desc: parsed.desc };
     }
-  };
+    throw new Error('Некорректный формат ответа');
+  } catch (error) {
+    console.error('Ошибка генерации темы:', error);
+    const fallback = STATIC_THEMES[Math.floor(Math.random() * STATIC_THEMES.length)];
+    await saveTheme(fallback.title);
+    return { title: fallback.title, desc: fallback.desc };
+  } finally {
+    setGeneratingTheme(false);
+  }
+};
 
   // Функция построения системного промпта с учётом темы
   const buildSystemPrompt = (themeTitle) => {
@@ -121,7 +150,7 @@ export default function Dialogue({ topics = [] }) {
     let prompt = selectedPersonality.prompt.replace('{theme}', themeTitle);
 
     // Общее правило объяснения понятий
-    prompt += `\n\nВажное правило: если в диалоге встречается новое слово или понятие, объясняй его не сухим определением, а через историю или реальный пример.`;
+    prompt += `\n\nВажное правило: если в диалоге встречается новое слово или понятие, объясняй его не сухим определением, а через историю или реальный пример. Можно использовать технику Феймана`;
 
     // Провокатор
     if (provocateur) {
@@ -150,6 +179,11 @@ export default function Dialogue({ topics = [] }) {
         systemPrompt
       );
       setMsgs([{ who: 'j', txt: reply }]);
+      // ==================== ДОБАВЛЕНО: ОЗВУЧИВАНИЕ ====================
+      if (voiceEnabled) {
+        await speakText(reply);
+      }
+      // ==============================================================
       setTimeout(() => inputRef.current?.focus(), 300);
     } catch (e) {
       console.error(e.message);
@@ -178,6 +212,11 @@ export default function Dialogue({ topics = [] }) {
       const systemPrompt = buildSystemPrompt(theme.title);
       const reply = await askDeepSeek(api, systemPrompt);
       setMsgs(prev => [...prev, { who: 'j', txt: reply }]);
+      // ==================== ДОБАВЛЕНО: ОЗВУЧИВАНИЕ ====================
+      if (voiceEnabled) {
+        await speakText(reply);
+      }
+      // ==============================================================
     } catch (e) {
       console.error(e.message);
     } finally {
@@ -293,16 +332,31 @@ export default function Dialogue({ topics = [] }) {
 
               {/* Выбор личности */}
               <View style={s.settingItem}>
-  <Text style={s.r1label}>Личность LEV</Text>
-  <TouchableOpacity
-    style={s.personalitySelector}
-    onPress={() => setPersonalityModalVisible(true)}
-  >
-    <Text style={s.personalitySelectorText}>
-      {ALL_PERSONALITIES.find(p => p.id === personalityId)?.name || 'Джарвис'}
-    </Text>
-  </TouchableOpacity>
-</View>
+                <Text style={s.r1label}>Личность LEV</Text>
+                <TouchableOpacity
+                  style={s.personalitySelector}
+                  onPress={() => setPersonalityModalVisible(true)}
+                >
+                  <Text style={s.personalitySelectorText}>
+                    {ALL_PERSONALITIES.find(p => p.id === personalityId)?.name || 'Джарвис'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* ==================== ДОБАВЛЕНО: ПЕРЕКЛЮЧАТЕЛЬ ГОЛОСА ==================== */}
+              <View style={s.settingItem}>
+                <View>
+                  <Text style={s.r1label}>Голос LEV</Text>
+                  <Text style={s.r1desc}>Озвучивать ответы</Text>
+                </View>
+                <Switch
+                  value={voiceEnabled}
+                  onValueChange={setVoiceEnabledState}
+                  trackColor={{ false: Colors.border2, true: Colors.purple + '80' }}
+                  thumbColor={voiceEnabled ? Colors.purple : Colors.muted}
+                />
+              </View>
+              {/* ======================================================================== */}
 
               {/* Кнопка обновления темы (только если диалог ещё не начат или в процессе) */}
               {!started && theme && (
@@ -320,8 +374,8 @@ export default function Dialogue({ topics = [] }) {
               {safeMsgs.map((m, i) => (
                 <View key={i} style={[s.row, m.who === 'u' && s.rowU]}>
                   <View style={[s.av, m.who === 'u' ? s.avU : s.avJ]}>
-                    <Text style={m.who === 'j' ? s.avTxtJ : s.avTxtU}>
-                      {m.who === 'j' ? 'J' : 'Я'}
+                    <Text style={m.who === 'l' ? s.avTxtJ : s.avTxtU}>
+                      {m.who === 'l' ? 'L' : 'Я'}
                     </Text>
                   </View>
                   <View style={[s.bubble, m.who === 'u' ? s.bubU : s.bubJ]}>
@@ -347,48 +401,49 @@ export default function Dialogue({ topics = [] }) {
             </>
           )}
         </ScrollView>
+
         <Modal
-  animationType="slide"
-  transparent={true}
-  visible={personalityModalVisible}
-  onRequestClose={() => setPersonalityModalVisible(false)}
->
-  <View style={s.modalOverlay}>
-    <View style={s.personalityModalContent}>
-      <Text style={s.modalTitle}>Выберите личность</Text>
-      <ScrollView style={s.personalityList}>
-        {ALL_PERSONALITIES.map(p => (
-          <TouchableOpacity
-            key={p.id}
-            style={[
-              s.personalityItem,
-              personalityId === p.id && s.personalityItemActive,
-            ]}
-            onPress={() => {
-              setPersonalityId(p.id);
-              setPersonalityModalVisible(false);
-            }}
-          >
-            <Text
-              style={[
-                s.personalityItemText,
-                personalityId === p.id && s.personalityItemTextActive,
-              ]}
-            >
-              {p.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-      <TouchableOpacity
-        style={s.personalityCloseBtn}
-        onPress={() => setPersonalityModalVisible(false)}
-      >
-        <Text style={s.personalityCloseBtnText}>Закрыть</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+          animationType="slide"
+          transparent={true}
+          visible={personalityModalVisible}
+          onRequestClose={() => setPersonalityModalVisible(false)}
+        >
+          <View style={s.modalOverlay}>
+            <View style={s.personalityModalContent}>
+              <Text style={s.modalTitle}>Выберите личность</Text>
+              <ScrollView style={s.personalityList}>
+                {ALL_PERSONALITIES.map(p => (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={[
+                      s.personalityItem,
+                      personalityId === p.id && s.personalityItemActive,
+                    ]}
+                    onPress={() => {
+                      setPersonalityId(p.id);
+                      setPersonalityModalVisible(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        s.personalityItemText,
+                        personalityId === p.id && s.personalityItemTextActive,
+                      ]}
+                    >
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={s.personalityCloseBtn}
+                onPress={() => setPersonalityModalVisible(false)}
+              >
+                <Text style={s.personalityCloseBtnText}>Закрыть</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {started && (
           <View style={s.bar}>
@@ -460,63 +515,63 @@ const s = StyleSheet.create({
   title: { fontFamily: Font.serif, fontSize: 22, color: Colors.text, marginBottom: 8 },
   desc: { fontFamily: Font.sans, fontSize: 13, color: Colors.textSub, lineHeight: 20 },
   settingsRow: { marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: Colors.border },
-  settingItem: { marginBottom: 16 },personalitySelector: {
-  backgroundColor: Colors.surface2,
-  borderWidth: 1,
-  borderColor: Colors.border2,
-  borderRadius: 8,
-  paddingVertical: 12,
-  paddingHorizontal: 12,
-  marginTop: 4,
-},
-personalityModalContent: {
-  backgroundColor: Colors.surface,
-  borderRadius: 20,
-  padding: 20,
-  width: '80%',
-  maxHeight: '70%',
-},
-personalityList: {
-  marginVertical: 12,
-},
-personalityItem: {
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  borderBottomWidth: 1,
-  borderBottomColor: Colors.border,
-},
-personalityItemActive: {
-  backgroundColor: Colors.purple + '20',
-},
-personalityItemText: {
-  fontFamily: Font.sans,
-  fontSize: 16,
-  color: Colors.text,
-},
-personalityItemTextActive: {
-  color: Colors.purple,
-  fontFamily: Font.mono,
-},
-personalityCloseBtn: {
-  marginTop: 12,
-  backgroundColor: Colors.purple,
-  borderRadius: 8,
-  paddingVertical: 10,
-  alignItems: 'center',
-},
-personalityCloseBtnText: {
-  color: '#fff',
-  fontSize: 14,
-  fontFamily: Font.sans,
-},
-personalitySelectorText: {
-  fontFamily: Font.sans,
-  fontSize: 14,
-  color: Colors.text,
-},
+  settingItem: { marginBottom: 16 },
+  personalitySelector: {
+    backgroundColor: Colors.surface2,
+    borderWidth: 1,
+    borderColor: Colors.border2,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginTop: 4,
+  },
+  personalitySelectorText: {
+    fontFamily: Font.sans,
+    fontSize: 14,
+    color: Colors.text,
+  },
+  personalityModalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    padding: 20,
+    width: '80%',
+    maxHeight: '70%',
+  },
+  personalityList: {
+    marginVertical: 12,
+  },
+  personalityItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  personalityItemActive: {
+    backgroundColor: Colors.purple + '20',
+  },
+  personalityItemText: {
+    fontFamily: Font.sans,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  personalityItemTextActive: {
+    color: Colors.purple,
+    fontFamily: Font.mono,
+  },
+  personalityCloseBtn: {
+    marginTop: 12,
+    backgroundColor: Colors.purple,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  personalityCloseBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: Font.sans,
+  },
   r1label: { fontFamily: Font.mono, fontSize: 11, color: Colors.purple, marginBottom: 2 },
   r1desc: { fontFamily: Font.sans, fontSize: 11, color: Colors.muted },
-  
   regenerateBtn: { marginTop: 8, backgroundColor: '#2a2a2a', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   regenerateText: { color: '#aaa', fontSize: 12, fontFamily: Font.mono },
   row: { flexDirection: 'row', gap: 10, marginBottom: 12, alignItems: 'flex-start' },

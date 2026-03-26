@@ -2,7 +2,7 @@
   "expo": {
     "name": "L.E.V",
     "slug": "jarvis-deepseek",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -10,11 +10,15 @@
       
     "android": {
       "userInterfaceStyle": "dark",
-      "package": "com.yourname.jarvis"
+      "package": "com.yourname.lev",
+      "icon": "./assets/icon.png"
+
+
+      
     },
     "ios": {
       "icon": "./assets/icon.png",
-      "bundleIdentifier": "com.yourname.jarvis"
+      "bundleIdentifier": "com.yourname.lev"
     },
     "extra": {
       "eas": {

@@ -20,7 +20,7 @@ export default function Onboarding({ onDone }) {
     if (selectedTopics.includes(topic)) {
       setSelectedTopics(selectedTopics.filter(t => t !== topic));
     } else {
-      if (selectedTopics.length >= 3) {
+      if (selectedTopics.length >= 5) {
         Alert.alert('Максимум 5 тем', 'Выберите не более 5 тем для персонализации.');
         return;
       }
